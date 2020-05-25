@@ -1,15 +1,17 @@
 package com.appsbysha.rulebooleanlogic
 
+import android.content.Context
+import android.widget.Toast
 import java.lang.Integer.max
 
-class LogicStringReader (val str: String) {
-    var i = 0
+class LogicStringReader (private val str: String, private val context: Context) {
+    private var i = 0
     fun addProductGroup(): ProductGroup { //invalid: X(a+b) . valid X(a||b) ... if 3(a+2b) MUST Reformat to 3a+6b // must be surrounded by brackets (validator can add if missing). only lower case letters.  same value can appear twice only with OR between them
-        var pg = ProductGroup()
+        val pg = ProductGroup()
         pg.productGroupList = mutableListOf()
 
         while (i < str.length) {
-            var char = str.get(i).toString()
+            var char = str[i].toString()
             when {
                 char == "|" -> {
                     pg.amount = max(1, pg.amount)
@@ -29,19 +31,19 @@ class LogicStringReader (val str: String) {
                     pg.productGroupList?.add(addProductGroup())
 
                 }
-                char.get(0) in ('a'..'z') -> {
+                char[0] in ('a'..'z') -> {
                     pg.productId = char
                     i++
                     return pg
 
                 }
 
-                char.get(0) in ('0'..'9') -> {
-                    var num: String = ""
-                    while (char.get(0) in ('0'..'9')) {
+                char[0] in ('0'..'9') -> {
+                    var num = ""
+                    while (char[0] in ('0'..'9')) {
                         num += char
                         i++
-                        char = str.get(i).toString()
+                        char = str[i].toString()
                     }
                     pg.amount = num.toInt()
                 }
@@ -50,6 +52,7 @@ class LogicStringReader (val str: String) {
                     return pg
 
                 }
+                else->{Toast.makeText(context, "invalid input", Toast.LENGTH_SHORT).show()}
             }
         }
         return pg
