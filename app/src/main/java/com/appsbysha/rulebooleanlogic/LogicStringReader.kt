@@ -15,6 +15,7 @@ class LogicStringReader (private val str: String, private val context: Context) 
             when {
                 char == "|" -> {
                     pg.amount = max(1, pg.amount)
+                    pg.operator = ProductGroup.LogicOperator.OR
                     i++
                     i++
                     pg.productGroupList?.add(addProductGroup())
@@ -22,6 +23,7 @@ class LogicStringReader (private val str: String, private val context: Context) 
                 }
                 char == "+" -> {
                     pg.amount += 1
+                    pg.operator = ProductGroup.LogicOperator.AND
                     i++
                     pg.productGroupList?.add(addProductGroup())
 
