@@ -2,9 +2,8 @@ package com.appsbysha.rulebooleanlogic
 
 import android.util.Log
 import org.json.JSONObject
-import kotlin.math.max
 
-class ProductGroup : JSONObject {
+class ProductGroup() : JSONObject() {
     var productId: String? = null
     var amount: Int = 1
     var allocated: Int = 0
@@ -13,7 +12,7 @@ class ProductGroup : JSONObject {
 
 
     private fun clone(): ProductGroup {
-        var newProductGroup = ProductGroup()
+        val newProductGroup = ProductGroup()
         newProductGroup.productId = this.productId
         newProductGroup.allocated = this.allocated
         newProductGroup.amount = this.amount
@@ -41,26 +40,13 @@ class ProductGroup : JSONObject {
     }
 
 
-    constructor() {}
-
-    constructor(json: String) : super(json) {
-
-        productId = this.optString("productId")
-        amount = this.optInt("amount")
-        allocated = this.optInt("allocated")
-        productGroupList = this.optJSONArray("productGroupList")
-            ?.let { 0.until(it.length()).map { i -> it.optJSONObject(i) } }
-            ?.map { com.appsbysha.rulebooleanlogic.ProductGroup(it.toString()) } as MutableList<ProductGroup>? // transforms each JSONObject of the array into Foo
-    }
-
-
-    enum class LogicOperator(i: Int) {
-        AND(0),
-        OR(1)
+    enum class LogicOperator() {
+        AND(),
+        OR()
     }
 
     fun searchItemInRule(searchProductId: String): Boolean { //searches for the rule once. ignores future items
-        var pg: ProductGroup = this
+        val pg: ProductGroup = this
         if (pg.productId.isNullOrBlank()) {
             for (pgChild in pg.productGroupList!!) {
                 val res = pgChild.searchItemInRule(searchProductId)
@@ -92,7 +78,7 @@ class ProductGroup : JSONObject {
         allocateProductsToRule(searchProductId)
         var maxPg = this.clone()
         var maxInt = 0
-        var allCombos = getAllCombos(this)
+        val allCombos = getAllCombos(this)
         for (list in allCombos) {
             val newPg = this.clone()
             newPg.productGroupList = mutableListOf()
@@ -109,7 +95,7 @@ class ProductGroup : JSONObject {
 
     }
 
-    fun allocateProductsToRule(searchProductId: String) {
+    private fun allocateProductsToRule(searchProductId: String) {
         val pg: ProductGroup = this
 
         if (pg.productId.isNullOrBlank()) {
@@ -125,62 +111,21 @@ class ProductGroup : JSONObject {
         }
     }
 
-    fun maxAllocator(pg: ProductGroup, productList: HashMap<String, Int>): Int {
-        //     val pg: ProductGroup = this
-        //for (list in getAllCombos(this)) {
+    private fun maxAllocator(pg: ProductGroup, productList: HashMap<String, Int>): Int {
         if (pg.productId.isNullOrBlank()) {
             for (pgChild in pg.productGroupList!!) {
                 maxAllocator(pgChild, productList)
             }
-            //parentReachedAmount(pg, productList)
-            findMaxAllocation(pg, productList) //todo allocate to product list - find the max
+            findMaxAllocation(pg, productList)
         }
-
         return pg.allocated
 
     }
 
 
-    fun multipleMeetsRule(
-        searchProductId: String,
-        productList: HashMap<String, Int>
-    ) { //searches for the rule multiple times
-        val pg: ProductGroup = this
-        //for (list in getAllCombos(this)) {
-
-        if (pg.productId.isNullOrBlank()) {
-            for (pgChild in pg.productGroupList!!) {
-                pgChild.multipleMeetsRule(searchProductId, productList)
-            }   //after the kids are allocated - allocate the parent:
-            //parentReachedAmount(pg, productList)
-            findMaxAllocation(pg, productList) //todo allocate to product list - find the max
-        } else if (pg.productId == searchProductId) {
-            pg.allocated += 1
-            Log.i("item in rule", "allocated" + pg.allocated.toString())
-        }
-
-        /*          //finished a list variation
-                  if(pg.allocated > maxAllocated )
-                  {
-                      maxPg = pg.clone()
-                  }
-              }//looped through all combos
-              maxPg.productGroupList?.let { //copy max pg group list
-                  this.productGroupList = mutableListOf()
-                  for (item in it)
-                      this.productGroupList?.add(item.clone())
-              }
-              this.productId = maxPg.productId
-              this.allocated = maxPg.allocated
-      */
-    }
-
     fun groupOfAllocatedReachedAmount(): Int {
         return this.allocated / (this.amount)
     }
-
-
-    //todo flaw: the order of the () in an or statement, with repeating products changes the result ((2a+b)||(a+2b)) -  bbbaaabba is read as - aab , aab and then left with bbb. rather than bba, bba, aab
 
     private fun parentReachedAmount(
         productGroup: ProductGroup,
@@ -191,8 +136,8 @@ class ProductGroup : JSONObject {
             LogicOperator.AND -> {
                 var isAllocating = true
                 var i = 0
-                var tempList: HashMap<String, Int> = hashMapOf()
-                var subTempList: HashMap<String, Int> = hashMapOf()
+                val tempList: HashMap<String, Int> = hashMapOf()
+                val subTempList: HashMap<String, Int> = hashMapOf()
                 while (isAllocating) {
                     var allocator = 0
                     for (pgChild in productGroup.productGroupList!!) {
@@ -275,13 +220,13 @@ class ProductGroup : JSONObject {
         pg: ProductGroup
         , productList: HashMap<String, Int> //receives a product list and returns
     ) {// : HashMap<String, Int>{  // product list could be filled from previous product groups
-        var newPg = ProductGroup()
+        val newPg = ProductGroup()
 
-        var maxAllocated = 0
+        var maxAllocated: Int
         var prevMaxAllocated = 0
         var maxProductList: HashMap<String, Int> = hashMapOf()// productList
         var maxPg = ProductGroup()
-        var tempProductList: HashMap<String, Int> = HashMap(productList) //save the original
+        val tempProductList: HashMap<String, Int> = HashMap(productList) //save the original
 
 
         for (list in getAllCombos(pg)) {
@@ -303,11 +248,8 @@ class ProductGroup : JSONObject {
     }
 
 
-    var allComboList: MutableList<MutableList<ProductGroup>> = mutableListOf()
-    var topAllComboList: MutableList<MutableList<ProductGroup>> = mutableListOf()
-
     private fun getAllCombos(pg: ProductGroup): MutableList<MutableList<ProductGroup>> {
-        var comboList: MutableList<MutableList<ProductGroup>> = mutableListOf()
+        val comboList: MutableList<MutableList<ProductGroup>> = mutableListOf()
         pg.productGroupList?.let {
             permute(comboList, it, 0)
         }
@@ -320,10 +262,7 @@ class ProductGroup : JSONObject {
         k: Int
     ) {
         if (k == productGroupList.size) {
-            /*           for (i in 0 until productGroupList.size) {
-                           print(" [" + productGroupList[i] + "] ")
-                       }*/
-            var pgl: MutableList<ProductGroup> = mutableListOf()
+            val pgl: MutableList<ProductGroup> = mutableListOf()
             for (item in productGroupList)
                 pgl.add(item.clone())
             comboList.add(pgl)
