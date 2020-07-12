@@ -3,6 +3,7 @@ package com.appsbysha.rulebooleanlogic
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -14,9 +15,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+       // editString.setText("((2a+b)||(a+2b))") //for testing
         doneButton.setOnClickListener { productGroup = LogicStringReader(editString.text.toString(), this).addProductGroup()
             editString.isEnabled = false
-            Log.i("viewPG", "" )}
+            val gson = Gson()
+            val jsonList: String = gson.toJson(productGroup)
+            Log.i("viewPG", jsonList )}
 
         clearButton.setOnClickListener { editString.setText("")
             editString.isEnabled = true
@@ -27,8 +31,8 @@ class MainActivity : AppCompatActivity() {
 
         addButton.setOnClickListener {
             enteredProducts.text = ("${enteredProducts.text}${enterProductsEditText.text.toString()}")
-            productGroup.allocateRules(enterProductsEditText.text.toString())
-            resultTV.text = productGroup.groupOfAllocatedReachedAmount().toString()
+            val itemList: List<Char> = enteredProducts.text?.toList()?: listOf()
+            resultTV.text = productGroup.allocateWithItemPermutation(itemList,0).toString()
                 enterProductsEditText.setText("")
         }
 
