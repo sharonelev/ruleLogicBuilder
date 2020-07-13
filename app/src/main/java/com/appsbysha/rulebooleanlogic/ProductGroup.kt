@@ -24,19 +24,19 @@ class ProductGroup() : JSONObject() {
 
     fun allocateWithItemPermutation(items: List<Char>, position: Int): Int {
 
-        while (allocateProductsToRuleSimple(items[position].toString(), position)) {
-            if (position == items.size - 1) //all allocated
+        while (allocateProductsToConditions(items[position].toString(), position)) { //allocate item to the next condition it hasn't been allocated to. position is used as the specific item id (a0, a1 etc)
+            if (position == items.size - 1) //if all allocated
             {
-                allocateParents()
-                maxAllocated = max(this.allocated / this.amount, maxAllocated)
+                allocateParents() //test all parents (brackets) and allocate if true
+                maxAllocated = max(this.allocated / this.amount, maxAllocated) //save max rewards eligible
             } else
-                allocateWithItemPermutation(items, position + 1)
+                allocateWithItemPermutation(items, position + 1) //same for next item
 
-            removeAllocations(items[position].toString(), position, false)
+            removeAllocations(items[position].toString(), position, false) //reduces the allocation counter, but saves list of items that were previously allocated there
         }
         var i = position
         while (i < items.size) {
-            removeAllocations(items[position].toString(), position, true)
+            removeAllocations(items[position].toString(), position, true) //removes list of items that were previously allocated there
             i++
 
         }
@@ -47,7 +47,7 @@ class ProductGroup() : JSONObject() {
 
     private fun removeAllocations(
         item: String,
-        position: Int,
+        productGuid: Int,
         initAllocatedList: Boolean
     ): Boolean {
 
@@ -55,19 +55,19 @@ class ProductGroup() : JSONObject() {
         pg.productId?.let {
             if (item == it) {
 
-                if (subProductIdAllocated[position] == true && !initAllocatedList) {
+                if (subProductIdAllocated[productGuid] == true && !initAllocatedList) {
                     allocated -= 1
-                    subProductIdAllocated[position] = false
+                    subProductIdAllocated[productGuid] = false
                     return true
                 }
                 if (initAllocatedList) {
-                    subProductIdAllocated.remove(position)
+                    subProductIdAllocated.remove(productGuid)
                 }
 
             }
         } ?: run {
             for (pgChild in pg.productGroupList!!) {
-                if (pgChild.removeAllocations(item, position, initAllocatedList))
+                if (pgChild.removeAllocations(item, productGuid, initAllocatedList))
                     return true
             }
         }
@@ -137,13 +137,13 @@ class ProductGroup() : JSONObject() {
     }
 
 
-    private fun allocateProductsToRuleSimple(searchProductId: String, productGuid: Int): Boolean {
+    private fun allocateProductsToConditions(searchProductId: String, productGuid: Int): Boolean {
         val pg: ProductGroup = this
 
         if (pg.productId.isNullOrBlank()) {
             pg.productGroupList?.let {
                 for (pgChild in it) {
-                    if (pgChild.allocateProductsToRuleSimple(searchProductId, productGuid))
+                    if (pgChild.allocateProductsToConditions(searchProductId, productGuid))
                         return true
                     //if false go to next child
                 }
